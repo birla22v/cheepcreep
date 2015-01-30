@@ -70,7 +70,8 @@ class Github
     puts "#{result.headers['x-ratelimit-remaining']} requests left!"
   end
 
-  def create_gist(opts = {:description => "the description for this gist", :public => true, :files => {:file1 =>{:content => "String file content"}}})
+  def create_gist(opts = {:description => "the description for this gist",
+    :public => true, :files => {:file1 =>{:content => "String file content"}}})
     # result = self.class.post("/gists", :file)
     # puts "#{result.headers['x-ratelimit-remaining']} requests left!"
     #JSON.parse(result.body)
@@ -80,15 +81,15 @@ class Github
     puts "#{result.headers['x-ratelimit-remaining']} requests left!"
   end
 
-  def edit_gists(opts = {:description => "the description for this gist",
-    :files => {:file1 => {:content => "updated file contents"},
-    :old_name => { :filename => "new_name",
-      :content => "modified contents"},
-      :new_file => {
-        :content => "a new file"},
-        :delete_this_file => nil}},id)
+  def edit_gists(options = {},id)
+    options = {:description => "the description for this gist",
+      :files => {:file1 => {:content => "updated file contents"},
+      :old_name => { :filename => "new_name",
+        :content => "modified contents"},
+        :new_file => {
+          :content => "a new file"}}}
 
-    options={:body => opts.to_json}
+    options={:body => options.to_json}
     result = self.class.patch("/gists/#{id}", options)
     puts "#{result.headers['x-ratelimit-remaining']} requests left!"
     JSON.parse(result.body)
