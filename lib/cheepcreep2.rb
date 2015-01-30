@@ -66,10 +66,42 @@ class Github
   end
 
   def delete_gist(id)
-    options={}
-    result = self.class.delete("/users/gists:#{id}", options)
+    result = self.class.delete("/gists/#{id}")
+    puts "#{result.headers['x-ratelimit-remaining']} requests left!"
+  end
+
+  def create_gist(opts = {:description => "the description for this gist", :public => true, :files => {:file1 =>{:content => "String file content"}}})
+    # result = self.class.post("/gists", :file)
+    # puts "#{result.headers['x-ratelimit-remaining']} requests left!"
+    #JSON.parse(result.body)
+    options = {:body => opts.to_json}
+    result = self.class.post("/gists", options)
+    JSON.parse(result.body)
+    puts "#{result.headers['x-ratelimit-remaining']} requests left!"
+  end
+
+  def edit_gists(opts = {:description => "the description for this gist",
+    :files => {:file1 => {:content => "updated file contents"},
+    :old_name => { :filename => "new_name",
+      :content => "modified contents"},
+      :new_file => {
+        :content => "a new file"},
+        :delete_this_file => nil}},id)
+
+    options={:body => opts.to_json}
+    result = self.class.patch("/gists/#{id}", options)
     puts "#{result.headers['x-ratelimit-remaining']} requests left!"
     JSON.parse(result.body)
+  end
+
+  def star_gist(id)
+    result = self.class.put("/gists/#{id}/star")
+    puts "#{result.headers['x-ratelimit-remaining']} requests left!"
+  end
+
+  def unstar_gist(id)
+    result = self.class.delete("/gists/#{id}/star")
+    puts "#{result.headers['x-ratelimit-remaining']} requests left!"
   end
 
   # def get_followers(screen_name, page=1, per_page=20)
