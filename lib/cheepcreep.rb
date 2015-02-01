@@ -4,6 +4,9 @@ require "httparty"
 require "pry"
 
 module Cheepcreep
+  class GithubUser < ActiveRecord::Base
+    validates :login, presence: true
+  end
 end
 
 #resp = HTTParty.get('https://')
@@ -15,44 +18,44 @@ end
 class Github
   include HTTParty
   base_uri 'https://api.github.com'
+  basic_auth ENV['GITHUB_USER'], ENV['GITHUB_PASS']
 
-  def initialize
-    # ENV["FOO"] is like echo $FOO
-    @auth = {:username => ENV['GITHUB_USER'], :password => ENV['GITHUB_PASS']}
-  end
-
-  def user_data(screen_name)
-    options = {:basic_auth => @auth}
-    result = self.class.get("/users/#{screen_name}", options)
-  end
-
-  def get_followers(screen_name)
-    followers = []
-    options = ({:basic_auth => @auth})
-    result = self.class.get("/users/#{screen_name}/followers", options)
+  def get_all_followers(user_name, page=1, per_page=20)
+    options={:query => {:page => page, :per_page => per_page}}
+    result = self.class.get("/users/#{user_name}/followers", options)
     json = JSON.parse(result.body)
-    followers.sample(20).each do |f|
-      followers << f[result['login']]
+    json.each do |follower|
+      puts follower['login']
     end
-    puts followers
   end
 
-  def get_user(screen_name)
-    result = user_data(screen_name)['login']
+  def user_data(user_name)
+    Cheepcreep::GithubUser.create(:login => json['login'],
+    :name          => json['name'],
+    :blog          => json['blog'],
+    :followers     => json['followers'],
+    :following     => json['following'],
+    :public_repos  => json['public_repos'])
+  end
+
+  def get_followers(user_name, num_followers=20)
+    get_all_followers(user_name).sample(20)
   end
 
   def get_gists(screen_name)
     options = {:basic_auth => @auth}
     result = self.class.get("/users/#{screen_name}/gists", options)
     json = JSON.parse(result.body)
-    binding.pry
   end
 end
+
+binding.pry
 
 class CheepcreepApp
 end
 
-
+github = Github.new
+Cheepcreep::GithubUser.create()
 binding.pry
 
 # creeper = CheepcreepApp.new
